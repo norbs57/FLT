@@ -7,21 +7,20 @@ lemma Submonoid.units_isOpen {M : Type*} [TopologicalSpace M] [Monoid M]
   {U : Submonoid M} (hU : IsOpen (U : Set M)) : IsOpen (U.units : Set Mˣ) :=
   (hU.preimage Units.continuous_val).inter (hU.preimage Units.continuous_coe_inv)
 
-
 lemma Submonoid.units_isCompact {M : Type*} [TopologicalSpace M] [Monoid M] [ContinuousMul M]
     [T2Space M] {U : Submonoid M} (hU : IsCompact (U : Set M)) : IsCompact (U.units : Set Mˣ) := by
-  let φ : Mˣ → M × M := fun x ↦  (↑x, ↑x⁻¹)
-  let p : M × M → M := fun  (u,v) => u * v
-  let q : M × M  → M := fun  (u,v) =>  v * u
+  let φ : Mˣ → M × M := fun x ↦ (↑x, ↑x⁻¹)
+  let p : M × M → M := fun (u,v) => u * v
+  let q : M × M → M := fun (u,v) => v * u
 
-  have rangePhiEq : p ⁻¹' {1} ∩ q ⁻¹' {1} = Set.range φ := by
+  have range_φ_eq : p ⁻¹' {1} ∩ q ⁻¹' {1} = Set.range φ := by
     apply Set.ext
     intro (u,v)
     simp_all only[p,q,φ]
     simp_all only [Set.image_univ, Set.mem_range, Prod.mk.injEq,
-         Set.mem_inter_iff, Set.mem_preimage, Set.mem_singleton_iff]
+      Set.mem_inter_iff, Set.mem_preimage, Set.mem_singleton_iff]
     constructor
-    · -- Forward direction: u * v = 1 ∧ v * u = 1 ⇒ (u, v) ∈ rangePhi
+    · -- Forward direction: u * v = 1 ∧ v * u = 1 ⇒ (u, v) ∈ Set.range φ
       intro h
       let y : Mˣ := ⟨u, v, h.1, h.2⟩
       use y
@@ -33,12 +32,13 @@ lemma Submonoid.units_isCompact {M : Type*} [TopologicalSpace M] [Monoid M] [Con
       subst left right
       simp_all only [Units.mul_inv, Units.inv_mul, and_self, q, φ, p]
 
-  have closedrangePhi : IsClosed (Set.range φ):= by
-    rw [← rangePhiEq]
+  have closed_range_φ : IsClosed (Set.range φ):= by
+    rw [← range_φ_eq]
     exact IsClosed.inter
       (isClosed_singleton.preimage continuous_mul)
       (isClosed_singleton.preimage  (continuous_mul.comp continuous_swap))
-  have isCompacthUU : IsCompact ((U : Set M) ×ˢ (U : Set M)) := hU.prod hU
+
+  have isCompact_hUU : IsCompact ((U : Set M) ×ˢ (U : Set M)) := hU.prod hU
 
   have φUu_subset : φ '' (U.units : Set Mˣ) ⊆ Set.range φ ∩ U ×ˢ U := by
     rintro z ⟨x, hxU, rfl⟩
@@ -69,7 +69,7 @@ lemma Submonoid.units_isCompact {M : Type*} [TopologicalSpace M] [Monoid M] [Con
 
   have φUu_compact : IsCompact (φ '' (U.units : Set Mˣ)) := by
     rw[φUu_eq]
-    apply IsCompact.inter_left isCompacthUU closedrangePhi
+    apply IsCompact.inter_left isCompact_hUU closed_range_φ
 
   let f :  M × M → M × Mᵐᵒᵖ := Prod.map id MulOpposite.op
   have continuous_f : Continuous f:= by
@@ -77,7 +77,6 @@ lemma Submonoid.units_isCompact {M : Type*} [TopologicalSpace M] [Monoid M] [Con
     exact continuous_id
     exact MulOpposite.continuous_op
   have f_φ_embedProduct: f ∘ φ = Units.embedProduct M  := by
-
     ext; simp [f,φ]; simp [f,φ]
   have continuous_φ: Continuous φ := by
     rw [continuous_prodMk]
@@ -90,7 +89,6 @@ lemma Submonoid.units_isCompact {M : Type*} [TopologicalSpace M] [Monoid M] [Con
     exact Units.isEmbedding_embedProduct
 
   exact (isEmbedding_φ.isCompact_iff).mpr φUu_compact
-
 
 /-- The monoid homeomorphism between the units of a product of topological monoids
 and the product of the units of the monoids.
